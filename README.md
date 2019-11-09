@@ -29,7 +29,3 @@
  
  - Important to close the connections when you have finished....
 
-```console
-foo@bar:~$ whoami
-foo
-```
