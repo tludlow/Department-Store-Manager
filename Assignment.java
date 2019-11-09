@@ -128,10 +128,36 @@ class Assignment {
 	public static void main(String args[]) throws SQLException, IOException {
 		// You should only need to fetch the connection details once
 		Connection conn = getConnection();
-
-		// Incomplete
-		// Code to present a looping menu, read in input data and call the appropriate option menu goes here
-		// You may use readEntry to retrieve input data
+		
+		while (true) {
+			String choiceMade = "";
+			
+			System.out.println("(1) In-Store Purchases");
+			System.out.println("(2) Collection");
+			System.out.println("(3) Delivery");
+			System.out.println("(4) Biggest Sellers");
+			System.out.println("(5) Reserved Stock");
+			System.out.println("(6) Staff Life-Time Success");
+			System.out.println("(7) Staff Contribution");
+			System.out.println("(8) Employees of the Year");
+			System.out.println("(0) Quit");
+			choiceMade = readEntry("Enter your choice: ");
+			
+			if (choiceMade == "0") {
+				break;
+			}
+			
+			switch (choiceMade) {
+			case "1":
+				System.out.println("you have picked in-store purchases");
+				break;
+			case "2":
+				System.out.println("You have picked, collection");
+				break;
+			default:
+				System.out.println(choiceMade + " is not a valid choice, try again");
+			}
+		}
 
 		conn.close();
 	}
