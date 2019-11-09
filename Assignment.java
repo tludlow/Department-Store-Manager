@@ -129,7 +129,8 @@ class Assignment {
 		// You should only need to fetch the connection details once
 		Connection conn = getConnection();
 		
-		while (true) {
+		boolean carryOn = true;
+		while (true && carryOn) {
 			String choiceMade = "";
 			
 			System.out.println("(1) In-Store Purchases");
@@ -149,13 +150,18 @@ class Assignment {
 			
 			switch (choiceMade) {
 			case "1":
-				System.out.println("you have picked in-store purchases");
+				System.out.println("\nyou have picked in-store purchases");
 				break;
 			case "2":
-				System.out.println("You have picked, collection");
+				System.out.println("\nYou have picked, collection");
+				break;
+				
+			case "0":
+				System.out.println("\n\nExiting department store database.\n\n");
+				carryOn = false;
 				break;
 			default:
-				System.out.println(choiceMade + " is not a valid choice, try again");
+				System.out.println("\n" + choiceMade + " is not a valid choice, try again");
 			}
 		}
 
