@@ -102,7 +102,7 @@ class Assignment {
 	public static Connection getConnection() {
 			// User and password should be left blank. Do not alter!
 			String user = "u1814232";
-        	String passwrd = "thisismypassword";
+        	String passwrd = "randomfakepassword";
         	Connection conn;
 
 	        try {
@@ -112,6 +112,7 @@ class Assignment {
 	        }
 
 	        try {
+	        	
 	            conn = DriverManager.getConnection("jdbc:oracle:thin:@arryn-ora-prod-db-1.warwick.ac.uk:1521:cs2db",user,passwrd);
 	            return conn;
 	        } catch(SQLException e) {
