@@ -101,8 +101,8 @@ class Assignment {
 
 	public static Connection getConnection() {
 			// User and password should be left blank. Do not alter!
-			String user = "u1814232";
-        	String passwrd = "randomfakepassword";
+			String user = "";
+        	String passwrd = "";
         	Connection conn;
 
 	        try {
@@ -114,8 +114,11 @@ class Assignment {
 	        try {
 	        	
 	            conn = DriverManager.getConnection("jdbc:oracle:thin:@arryn-ora-prod-db-1.warwick.ac.uk:1521:cs2db",user,passwrd);
+	        	//conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:7100:daisy",user,passwrd);
+	        	
 	            return conn;
 	        } catch(SQLException e) {
+	        	e.printStackTrace();
 	            System.out.println("Error retrieving connection");
 	            return null;
 	        }
