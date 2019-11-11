@@ -2,6 +2,8 @@
 
 ## Running this code locally is awkward and requires many things, heres a list of how to do it.
 
+Powershell Xterm fix: https://github.com/PowerShell/Win32-OpenSSH/wiki/TTY-PTY-support-in-Windows-OpenSSH
+
  - SSH into daisy using powershell using the command
  ```console
  ssh -L 7100:daisy:1521 u1814232@daisy.csv.warwick.ac.uk
