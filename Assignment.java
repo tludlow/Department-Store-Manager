@@ -22,7 +22,7 @@ class Assignment {
 	/**
 	* @param conn An open database connection 
 	* @param productIDs An array of productIDs associated with an order
-        * @param quantities An array of quantities of a product. The index of a quantity correspeonds with an index in productIDs
+    * @param quantities An array of quantities of a product. The index of a quantity correspeonds with an index in productIDs
 	* @param orderDate A string in the form of 'DD-Mon-YY' that represents the date the order was made
 	* @param staffID The id of the staff member who sold the order
 	*/
@@ -33,7 +33,7 @@ class Assignment {
 	/**
 	* @param conn An open database connection 
 	* @param productIDs An array of productIDs associated with an order
-        * @param quantities An array of quantities of a product. The index of a quantity correspeonds with an index in productIDs
+    * @param quantities An array of quantities of a product. The index of a quantity correspeonds with an index in productIDs
 	* @param orderDate A string in the form of 'DD-Mon-YY' that represents the date the order was made
 	* @param collectionDate A string in the form of 'DD-Mon-YY' that represents the date the order will be collected
 	* @param fName The first name of the customer who will collect the order
@@ -47,7 +47,7 @@ class Assignment {
 	/**
 	* @param conn An open database connection 
 	* @param productIDs An array of productIDs associated with an order
-        * @param quantities An array of quantities of a product. The index of a quantity correspeonds with an index in productIDs
+    * @param quantities An array of quantities of a product. The index of a quantity correspeonds with an index in productIDs
 	* @param orderDate A string in the form of 'DD-Mon-YY' that represents the date the order was made
 	* @param deliveryDate A string in the form of 'DD-Mon-YY' that represents the date the order will be delivered
 	* @param fName The first name of the customer who will receive the order
