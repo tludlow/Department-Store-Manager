@@ -27,7 +27,16 @@ class Assignment {
 	* @param staffID The id of the staff member who sold the order
 	*/
 	public static void option1(Connection conn, int[] productIDs, int[] quantities, String orderDate, int staffID) {
-		// Incomplete - Code for option 1 goes here
+		Statement stmt = null;
+		String query;
+		try {
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("\n\n ERROR INSERTING PRODUCT [OPTION 1] \n\n");
+		} finally {
+			if (stmt != null) { stmt.close(); }
+		}
 	}
 
 	/**
@@ -130,7 +139,7 @@ class Assignment {
 		Connection conn = getConnection();
 		
 		boolean carryOn = true;
-		while (true && carryOn) {
+		while (carryOn) {
 			String choiceMade = "";
 			
 			System.out.println("(1) In-Store Purchases");
@@ -144,24 +153,20 @@ class Assignment {
 			System.out.println("(0) Quit");
 			choiceMade = readEntry("Enter your choice: ");
 			
-			if (choiceMade == "0") {
-				break;
-			}
 			
 			switch (choiceMade) {
-			case "1":
-				System.out.println("\nyou have picked in-store purchases");
-				break;
-			case "2":
-				System.out.println("\nYou have picked, collection");
-				break;
-				
-			case "0":
-				System.out.println("\n\nExiting department store database.\n\n");
-				carryOn = false;
-				break;
-			default:
-				System.out.println("\n" + choiceMade + " is not a valid choice, try again");
+				case "0":
+					System.out.println("\n\nExiting department store database.\n\n");
+					carryOn = false;
+					break;
+				case "1":
+					System.out.println("\nyou have picked in-store purchases");
+					break;
+				case "2":
+					System.out.println("\nYou have picked, collection");
+					break;
+				default:
+					System.out.println("\n" + choiceMade + " is not a valid choice, try again");
 			}
 		}
 
