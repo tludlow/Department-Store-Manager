@@ -32,16 +32,67 @@ class Assignment {
 	* @param staffID The id of the staff member who sold the order
 	*/
 	public static void option1(Connection conn, int[] productIDs, int[] quantities, String orderDate, int staffID) {
-		// Statement stmt = null;
-		// String query;
-		// try {
+		//Option 1 is implemented as a sql procedure.
+		//create_orders(order_type, order_completed, order_date, staff_id, order_items(...variadicProductID, quantitiessold))
 
-		// } catch (SQLException e) {
-		// 	e.printStackTrace();
-		// 	System.out.println("\n\n ERROR INSERTING PRODUCT [OPTION 1] \n\n");
-		// } finally {
-		// 	if (stmt != null) { stmt.close(); }
-		// }
+		//the following code dynamic generates the order_items type made in my sql code.
+		String dynamicOrderItems = "order_items(";
+		for(int i =0; i < productIDs.length; i++) {
+			if (i == 0) {
+				dynamicOrderItems = dynamicOrderItems + productIDs[i] + "," + quantities[i];
+			} else {
+				dynamicOrderItems = dynamicOrderItems + "," + productIDs[i] + "," + quantities[i];
+			}
+		}
+		dynamicOrderItems = dynamicOrderItems + ")";
+		//End of the dynamic generate of the order_items type.
+		boolean toPrintStock = true;
+		try {
+			CallableStatement storedProcedure = conn.prepareCall("{ call create_order('InStore', '1', ?, ?, " + dynamicOrderItems + ") }");
+			storedProcedure.setString(1, orderDate);
+			storedProcedure.setInt(2, staffID);
+			storedProcedure.execute();
+			storedProcedure.close();
+		} catch (SQLException e) {
+			System.out.println("\n\nError running option 1.\n\n");
+			toPrintStock = false;
+			if(e.getMessage().contains(", line 30")) {
+				System.out.println("Invalid product ID entered, one of your products doesn't exist!");
+			}
+			if(e.getMessage().contains(", line 17")) {
+				System.out.println("Invalid staff id, this staff member doesn't exist!");
+			}
+			if(e.getMessage().contains("DECREMENT_STOCK") || e.getMessage().contains("POSITIVE_STOCK_CHECK")) {
+				System.out.println("One of the items you are trying to order doesn't have enough stock for your order.");
+			}
+			if(e.getMessage().contains("OPS$U1814232.CREATE_ORDER")) {
+				System.out.println("Error running create_order procedure because of above errors.");
+			}
+		}
+
+		//Get the updated stock for the items.
+		if(toPrintStock) {
+			try {
+				String query = "SELECT ProductID, ProductStockAmount FROM inventory WHERE ";
+				//Dynamicly generate sql string.
+				for(int i=0; i<productIDs.length; i++) {
+					//Don't add an OR to the final product.. only the ones beforehand.
+					if(i == productIDs.length - 1) {
+						query = query + "ProductID=" + productIDs[i];
+					} else {
+						query = query + "ProductID=" + productIDs[i] + " OR ";
+					}
+				}
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(query);
+				while(rs.next()) {
+					System.out.println("Product ID " + rs.getString(1) + " stock is now at " + rs.getString(2) + ".");
+				}
+				stmt.close();
+			} catch (SQLException e) {
+				System.out.println("Error getting updated stock for your order.");
+			}
+		}
 	}
 
 	/**

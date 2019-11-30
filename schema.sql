@@ -44,10 +44,10 @@ CREATE TABLE orders (
 );
 
 
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '0', '26-NOV-19');
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '0', '24-OCT-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '1', '26-NOV-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '24-OCT-19');
 INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '03-OCT-19');
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '1', '18-AUG-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '18-AUG-19');
 
 
 /* ====================[ ORDER_PRODUCTS ]=================== */
@@ -72,7 +72,7 @@ CREATE OR REPLACE TYPE order_items AS TABLE OF integer;
 
 -- Procedure to order products, made using a procedure so that we can rollback on error.
 DROP PROCEDURE create_order;
-CREATE OR REPLACE PROCEDURE create_order (order_type IN varchar2, order_placed IN Date, staff_id IN integer, order_lines IN order_items) AS
+CREATE OR REPLACE PROCEDURE create_order (order_type IN varchar2, order_completed IN integer, order_placed IN Date, staff_id IN integer, order_lines IN order_items) AS
 	too_short_order_lines EXCEPTION;
 	invalid_order EXCEPTION;
 	last_order_id integer;
@@ -81,15 +81,8 @@ BEGIN
 	-- We create a savepoint here.
 	SAVEPOINT before_order;
 
-	--Create the new order in orders table
-	--If it's a InStore/Collection order it's completed, if it's a delivery it isnt completed.
-	IF order_type IN ('InStore', 'Collection') THEN
-		INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES (order_type, '0', order_placed);
-	ELSE
-		INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES (order_type, '1', order_placed);
-	END IF;
+	INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES (order_type, order_completed, order_placed);
 	
-
 	-- Get the ID of the order being inserted.
 	SELECT max(OrderID) INTO last_order_id FROM orders;
 
