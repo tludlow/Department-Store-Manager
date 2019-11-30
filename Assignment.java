@@ -23,6 +23,38 @@ class Assignment {
 		}
 	 }
 	 
+	
+	 /**
+	  * Generate a custom string to use in the create_order sql procedure.
+	  * @param productIDs The products you want to have
+	  * @param quantities The quantities you want to have, matches up against product IDS
+	  * @return The string representing the sql to these items in the custom sql type order_items.
+	  */
+	private static String orderItemsGenerator(int[] productIDs, int[] quantities) {
+		String dynamicOrderItems = "order_items(";
+		for(int i =0; i < productIDs.length; i++) {
+			if (i == 0) {
+				dynamicOrderItems = dynamicOrderItems + productIDs[i] + "," + quantities[i];
+			} else {
+				dynamicOrderItems = dynamicOrderItems + "," + productIDs[i] + "," + quantities[i];
+			}
+		}
+		dynamicOrderItems = dynamicOrderItems + ")";
+
+		return dynamicOrderItems;
+	}
+
+	private static int getMaxOrder(Connection conn) throws SQLException {
+		try {
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT max(OrderID) FROM orders");
+			int orderID = rs.getInt("MAX(ORDERID)");
+			return orderID;
+		} catch (SQLException e) {
+			throw e;
+		}
+	}
+	 
 
 	/**
 	* @param conn An open database connection 
@@ -36,15 +68,8 @@ class Assignment {
 		//create_orders(order_type, order_completed, order_date, staff_id, order_items(...variadicProductID, quantitiessold))
 
 		//the following code dynamic generates the order_items type made in my sql code.
-		String dynamicOrderItems = "order_items(";
-		for(int i =0; i < productIDs.length; i++) {
-			if (i == 0) {
-				dynamicOrderItems = dynamicOrderItems + productIDs[i] + "," + quantities[i];
-			} else {
-				dynamicOrderItems = dynamicOrderItems + "," + productIDs[i] + "," + quantities[i];
-			}
-		}
-		dynamicOrderItems = dynamicOrderItems + ")";
+		String dynamicOrderItems = orderItemsGenerator(productIDs, quantities);
+
 		//End of the dynamic generate of the order_items type.
 		boolean toPrintStock = true;
 		try {
@@ -106,7 +131,80 @@ class Assignment {
 	* @param staffID The id of the staff member who sold the order
 	*/
 	public static void option2(Connection conn, int[] productIDs, int[] quantities, String orderDate, String collectionDate, String fName, String LName, int staffID) {
-		
+		//Option 2 is implemented as a sql procedure.
+		//create_orders(order_type, order_completed, order_date, staff_id, order_items(...variadicProductID, quantitiessold))
+
+		//the following code dynamic generates the order_items type made in my sql code.
+		String dynamicOrderItems = orderItemsGenerator(productIDs, quantities);
+
+		//End of the dynamic generate of the order_items type.
+		boolean toPrintStock = true;
+		boolean toMakeCollection = true;
+		try {
+			CallableStatement storedProcedure = conn.prepareCall("{ call create_order('Collection', '0', ?, ?, " + dynamicOrderItems + ") }");
+			storedProcedure.setString(1, orderDate);
+			storedProcedure.setInt(2, staffID);
+			storedProcedure.execute();
+			storedProcedure.close();
+		} catch (SQLException e) {
+			System.out.println("\n\nError running option 2.\n\n");
+			toPrintStock = false;
+			toMakeCollection = false;
+			if(e.getMessage().contains(", line 30")) {
+				System.out.println("Invalid product ID entered, one of your products doesn't exist!");
+			}
+			if(e.getMessage().contains(", line 17")) {
+				System.out.println("Invalid staff id, this staff member doesn't exist!");
+			}
+			if(e.getMessage().contains("DECREMENT_STOCK") || e.getMessage().contains("POSITIVE_STOCK_CHECK")) {
+				System.out.println("One of the items you are trying to order doesn't have enough stock for your order.");
+			}
+			if(e.getMessage().contains("OPS$U1814232.CREATE_ORDER")) {
+				System.out.println("Error running create_order procedure because of above errors.");
+			}
+		}
+
+		//Should only make a collection if no errors creating the order.
+
+		if(toMakeCollection) {
+			try {
+				//Get the order id we just created.
+				int orderID = getMaxOrder(conn);
+
+				Statement stmt2 = conn.createStatement();
+				String collectionInsertQuery = "INSERT INTO collections VALUES(" + orderID + ", '" + fName + "', '" + LName + "', '" + collectionDate + "')";
+				stmt2.executeUpdate(collectionInsertQuery);
+
+				stmt2.close();
+			} catch (SQLException e) {
+				toPrintStock = false;
+				System.out.println("Error creating collection details!");
+			}
+		}
+
+		//Get the updated stock for the items.
+		if(toPrintStock) {
+			try {
+				String query = "SELECT ProductID, ProductStockAmount FROM inventory WHERE ";
+				//Dynamicly generate sql string.
+				for(int i=0; i<productIDs.length; i++) {
+					//Don't add an OR to the final product.. only the ones beforehand.
+					if(i == productIDs.length - 1) {
+						query = query + "ProductID=" + productIDs[i];
+					} else {
+						query = query + "ProductID=" + productIDs[i] + " OR ";
+					}
+				}
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(query);
+				while(rs.next()) {
+					System.out.println("Product ID " + rs.getString(1) + " stock is now at " + rs.getString(2) + ".");
+				}
+				stmt.close();
+			} catch (SQLException e) {
+				System.out.println("Error getting updated stock for your order.");
+			}
+		}
 	}
 
 	/**
