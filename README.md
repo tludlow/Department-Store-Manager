@@ -31,3 +31,10 @@ Powershell Xterm fix: https://github.com/PowerShell/Win32-OpenSSH/wiki/TTY-PTY-s
  
  - Important to close the connections when you have finished....
 
+
+ ### Cool commands that are good to remember
+ SQL Run procedure.
+ ```sql
+ execute create_order('InStore', '29-NOV-2019', 1 order_items(1,1,2,1));  // 1 = staffid
+ ```
+
