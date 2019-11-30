@@ -106,7 +106,7 @@ class Assignment {
 	* @param staffID The id of the staff member who sold the order
 	*/
 	public static void option2(Connection conn, int[] productIDs, int[] quantities, String orderDate, String collectionDate, String fName, String LName, int staffID) {
-		// Incomplete - Code for option 2 goes here
+		
 	}
 
 	/**
@@ -271,7 +271,7 @@ class Assignment {
 						//Have all the products sold, now get the dates.
 						String dateOrdered = "";
 						while (true) {
-							dateOrdered = readEntry("Enter the date sold (DD-Mon-YY): ");
+							dateOrdered = readEntry("Enter the date sold: ");
 							try {
 								dFormat.parse(dateOrdered);
 								break;
@@ -283,7 +283,7 @@ class Assignment {
 						int staffID = -1;
 						while (true) {
 							try {
-								staffID = Integer.parseInt(readEntry("Enter your staff ID: "));
+								staffID = Integer.parseInt(readEntry("Enter your staff ID: \n"));
 								break;
 							} catch (NumberFormatException e) {
 								System.out.println("Invalid staff ID, must be an integer!");
@@ -304,9 +304,219 @@ class Assignment {
 					break;
 				case "2":
 					System.out.println("\nYou have picked, collection");
+					ArrayList<Integer> products2 = new ArrayList<>();
+					ArrayList<Integer> quantities2 = new ArrayList<>();
+					while (true) {
+						int newProductID = -1;
+
+						//Get the product ID.
+						while (true) {
+							try {
+								newProductID = Integer.parseInt(readEntry("Enter a product ID: "));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid product ID, must be an integer!");
+							}
+						}
+						products2.add(newProductID);
+
+						//Get the quantity.
+						int newQuantitySold = -1;
+						while (true) {
+							try {
+								newQuantitySold = Integer.parseInt(readEntry("Enter the quantity sold: "));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid quantity sold, must be an integer!");
+							}
+						}
+						quantities2.add(newQuantitySold);
+
+						//See if more products sold, if so restart the loop and get the other products and the quantities.
+						String isMore = readEntry("Is there another product in the order?: ");
+						if(isMore.equals("Y")) {
+							continue;
+						}
+
+						//Have all the products sold, now get the dates.
+						String dateOrdered = "";
+						while (true) {
+							dateOrdered = readEntry("Enter the date sold: ");
+							try {
+								dFormat.parse(dateOrdered);
+								break;
+							} catch (ParseException e) {
+								System.out.println("Not a valid date, must be of the form DD-Mon-YYYY");
+							}
+						}
+
+						String dateCollection = "";
+						while (true) {
+							dateCollection = readEntry("Enter the date of collection: ");
+							try {
+								dFormat.parse(dateCollection);
+								break;
+							} catch (ParseException e) {
+								System.out.println("Not a valid date, must be of the form DD-Mon-YYYY");
+							}
+						}
+
+						String firstName = "";
+						while (true) {
+							firstName = readEntry("Enter the first name of the collector: ");
+							if(!firstName.isEmpty()) {
+								break;
+							}
+						}
+
+						String lastName = "";
+						while (true) {
+							lastName = readEntry("Enter the last name of the collector: ");
+							if(!lastName.isEmpty()) {
+								break;
+							}
+						}
+
+						int staffID = -1;
+						while (true) {
+							try {
+								staffID = Integer.parseInt(readEntry("Enter your staff ID: \n"));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid staff ID, must be an integer!");
+							}
+						}
+
+						int[] productArray = new int[products2.size()];
+						int[] quantitiesArray = new int[products2.size()];
+						for(int i=0; i<products2.size(); i++) {
+							productArray[i] = products2.get(i);
+							quantitiesArray[i] = quantities2.get(i);
+						}
+
+						option2(conn, productArray, quantitiesArray, dateOrdered, dateCollection, firstName, lastName, staffID);
+						break;
+					}
 					break;
 				case "3":
 					System.out.println("\nYou have picked, Delivery");
+					ArrayList<Integer> products3 = new ArrayList<>();
+					ArrayList<Integer> quantities3 = new ArrayList<>();
+					while (true) {
+						int newProductID = -1;
+
+						//Get the product ID.
+						while (true) {
+							try {
+								newProductID = Integer.parseInt(readEntry("Enter a product ID: "));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid product ID, must be an integer!");
+							}
+						}
+						products3.add(newProductID);
+
+						//Get the quantity.
+						int newQuantitySold = -1;
+						while (true) {
+							try {
+								newQuantitySold = Integer.parseInt(readEntry("Enter the quantity sold: "));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid quantity sold, must be an integer!");
+							}
+						}
+						quantities3.add(newQuantitySold);
+
+						//See if more products sold, if so restart the loop and get the other products and the quantities.
+						String isMore = readEntry("Is there another product in the order?: ");
+						if(isMore.equals("Y")) {
+							continue;
+						}
+
+						//Have all the products sold, now get the dates.
+						String dateOrdered = "";
+						while (true) {
+							dateOrdered = readEntry("Enter the date sold: ");
+							try {
+								dFormat.parse(dateOrdered);
+								break;
+							} catch (ParseException e) {
+								System.out.println("Not a valid date, must be of the form DD-Mon-YYYY");
+							}
+						}
+
+						String dateDelivery = "";
+						while (true) {
+							dateDelivery = readEntry("Enter the date of collection: ");
+							try {
+								dFormat.parse(dateDelivery);
+								break;
+							} catch (ParseException e) {
+								System.out.println("Not a valid date, must be of the form DD-Mon-YYYY");
+							}
+						}
+
+						String firstName = "";
+						while (true) {
+							firstName = readEntry("Enter the first name of the recipitent: ");
+							if(!firstName.isEmpty()) {
+								break;
+							}
+						}
+
+						String lastName = "";
+						while (true) {
+							lastName = readEntry("Enter the last name of the recipitent: ");
+							if(!lastName.isEmpty()) {
+								break;
+							}
+						}
+
+						String house = "";
+						while (true) {
+							house = readEntry("Enter the house name/no: ");
+							if(!house.isEmpty()) {
+								break;
+							}
+						}
+
+						String street = "";
+						while (true) {
+							street = readEntry("Enter the street: ");
+							if(!street.isEmpty()) {
+								break;
+							}
+						}
+
+						String city = "";
+						while (true) {
+							city = readEntry("Enter the City: ");
+							if(!city.isEmpty()) {
+								break;
+							}
+						}
+
+						int staffID = -1;
+						while (true) {
+							try {
+								staffID = Integer.parseInt(readEntry("Enter your staff ID: \n"));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid staff ID, must be an integer!");
+							}
+						}
+
+						int[] productArray = new int[products3.size()];
+						int[] quantitiesArray = new int[products3.size()];
+						for(int i=0; i<products3.size(); i++) {
+							productArray[i] = products3.get(i);
+							quantitiesArray[i] = quantities3.get(i);
+						}
+
+						option3(conn, productArray, quantitiesArray, dateOrdered, dateDelivery, firstName, lastName, house, street, city, staffID);
+						break;
+					}
 					break;
 				case "4":
 					System.out.println("\nYou have picked, Biggest Sellers");
