@@ -179,6 +179,10 @@ CREATE TABLE staff (
 	PRIMARY KEY (StaffID)
 );
 
+INSERT INTO staff (FName, LName) VALUES ('Thomas', 'Ludlow');
+INSERT INTO staff (FName, LName) VALUES ('Jeff', 'Marks');
+INSERT INTO staff (FName, LName) VALUES ('Bill', 'Bob');
+
 /* ====================[ staff_orders ]=================== */
 
 DROP TABLE staff_orders CASCADE CONSTRAINTS;
