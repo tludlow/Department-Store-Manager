@@ -48,8 +48,11 @@ class Assignment {
 		try {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT max(OrderID) FROM orders");
-			int orderID = rs.getInt("MAX(ORDERID)");
-			return orderID;
+			if(rs.next()) {
+				return rs.getInt("MAX(ORDERID)");
+			}
+			
+			return -1;
 		} catch (SQLException e) {
 			throw e;
 		}
@@ -381,7 +384,7 @@ class Assignment {
 						int staffID = -1;
 						while (true) {
 							try {
-								staffID = Integer.parseInt(readEntry("Enter your staff ID: \n"));
+								staffID = Integer.parseInt(readEntry("Enter your staff ID: "));
 								break;
 							} catch (NumberFormatException e) {
 								System.out.println("Invalid staff ID, must be an integer!");
@@ -478,7 +481,7 @@ class Assignment {
 						int staffID = -1;
 						while (true) {
 							try {
-								staffID = Integer.parseInt(readEntry("Enter your staff ID: \n"));
+								staffID = Integer.parseInt(readEntry("Enter your staff ID: "));
 								break;
 							} catch (NumberFormatException e) {
 								System.out.println("Invalid staff ID, must be an integer!");
@@ -598,7 +601,7 @@ class Assignment {
 						int staffID = -1;
 						while (true) {
 							try {
-								staffID = Integer.parseInt(readEntry("Enter your staff ID: \n"));
+								staffID = Integer.parseInt(readEntry("Enter your staff ID: "));
 								break;
 							} catch (NumberFormatException e) {
 								System.out.println("Invalid staff ID, must be an integer!");
