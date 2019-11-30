@@ -44,10 +44,10 @@ CREATE TABLE orders (
 );
 
 
--- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '0', '26-NOV-19');
--- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '0', '24-OCT-19');
--- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '03-OCT-19');
--- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '1', '18-AUG-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '0', '26-NOV-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '0', '24-OCT-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '03-OCT-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '1', '18-AUG-19');
 
 
 /* ====================[ ORDER_PRODUCTS ]=================== */
@@ -93,6 +93,9 @@ BEGIN
 	-- Get the ID of the order being inserted.
 	SELECT max(OrderID) INTO last_order_id FROM orders;
 
+	-- Insert into the staff_orders that they sold this product.
+	INSERT INTO staff_orders VALUES(staff_id, last_order_id);
+
   	-- Iterate across all of the order_lines and insert them into the order_products table.
   	-- If an error occurs whilst doing this the whole order gets rolledback nicely (will probably error if not in stock)
 
@@ -108,9 +111,6 @@ BEGIN
 			currently_processed := currently_processed + 2;
 		END LOOP;
 	END IF;
-
-	-- Insert into the staff_orders that they sold this product.
-	INSERT INTO staff_orders VALUES(staff_id, last_order_id);
 EXCEPTION
 	WHEN OTHERS THEN
 		ROLLBACK TO before_order;
@@ -132,7 +132,8 @@ END;
 /
 
 
--- INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 2);
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 100);
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 2, 40);
 
 
 
@@ -193,3 +194,63 @@ CREATE TABLE staff_orders (
 	FOREIGN KEY (StaffID) REFERENCES staff(StaffID),
 	FOREIGN KEY (OrderID) REFERENCES orders(OrderID) ON DELETE CASCADE
 );
+
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 1);
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 2);
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (2, 3);
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (3, 4);
+
+
+/* ====================[ Views ]=================== */
+-- Views have been made for some of the options. Why code in java when you can code in sql? hmmm thinkingface.
+
+-- View that returns the staff which have sold at least £50,000 of items and ordered by the ones who have sold the most at the top (descending)
+CREATE or REPLACE VIEW staff_lifetime_success AS
+SELECT staff.FName, staff.LName, SUM(inventory.ProductPrice * order_products.ProductQuantity) AS staff_amount_sold
+FROM staff 
+	INNER JOIN staff_orders 
+		ON staff.StaffID = staff_orders.StaffID  
+	INNER JOIN order_products
+		ON staff_orders.OrderID = order_products.OrderID
+	INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
+GROUP BY staff.FName, staff.LName
+HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) >= 50000
+ORDER BY staff_amount_sold DESC;
+/
+
+
+CREATE or REPLACE VIEW employee_of_the_year AS
+WITH StaffAmountSold AS ( 
+SELECT staff.FName AS FName, staff.LName as LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
+SUM(inventory.ProductPrice * order_products.ProductQuantity) AS staff_total_sold 
+FROM staff  
+    INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID  
+    INNER JOIN orders ON staff_orders.OrderID = orders.OrderID  
+    INNER JOIN order_products ON orders.OrderID = order_products.OrderID  
+    INNER JOIN inventory ON order_products.ProductID = inventory.ProductID  
+WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = EXTRACT(YEAR FROM sysdate)  /*Take the date out of the order placed part so we can check that it was this year. */
+GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID 
+), BestSellingItem AS ( 
+    SELECT inventory.ProductID AS ProductID  
+    FROM inventory  
+        INNER JOIN order_products  
+            ON inventory.ProductID = order_products.ProductID  
+        INNER JOIN orders  
+            ON order_products.OrderID = orders.OrderID  
+    WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = EXTRACT(YEAR FROM sysdate)   
+    HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000  
+    GROUP BY inventory.ProductID 
+)  
+SELECT FName, LName
+FROM StaffAmountSold  
+INNER JOIN ( 
+    SELECT StaffAmountSold.StaffID, COUNT(StaffAmountSold.ProductID) AS NumberBestSold  
+    FROM StaffAmountSold  
+    WHERE StaffAmountSold.ProductID IN  (SELECT BestSellingItem.ProductID FROM BestSellingItem) 
+    GROUP BY StaffAmountSold.StaffID 
+) StaffProductsCount ON StaffAmountSold.StaffID = StaffProductsCount.StaffID  
+WHERE StaffProductsCount.NumberBestSold = (SELECT COUNT(*) FROM BestSellingItem) 
+HAVING SUM(StaffAmountSold.staff_total_sold) >= 30000  
+GROUP BY StaffAmountSold.FName, StaffAmountSold.LName, StaffAmountSold.StaffID  
+ORDER BY StaffAmountSold.StaffID;
+/

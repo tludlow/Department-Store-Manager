@@ -1,5 +1,9 @@
 import java.io.*;
 import java.sql.*;
+import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 class Assignment {
 
@@ -17,7 +21,8 @@ class Assignment {
 		} catch (IOException e) {
 			return "";
 		}
- 	}
+	 }
+	 
 
 	/**
 	* @param conn An open database connection 
@@ -27,16 +32,16 @@ class Assignment {
 	* @param staffID The id of the staff member who sold the order
 	*/
 	public static void option1(Connection conn, int[] productIDs, int[] quantities, String orderDate, int staffID) {
-		Statement stmt = null;
-		String query;
-		try {
+		// Statement stmt = null;
+		// String query;
+		// try {
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("\n\n ERROR INSERTING PRODUCT [OPTION 1] \n\n");
-		} finally {
-			if (stmt != null) { stmt.close(); }
-		}
+		// } catch (SQLException e) {
+		// 	e.printStackTrace();
+		// 	System.out.println("\n\n ERROR INSERTING PRODUCT [OPTION 1] \n\n");
+		// } finally {
+		// 	if (stmt != null) { stmt.close(); }
+		// }
 	}
 
 	/**
@@ -90,7 +95,22 @@ class Assignment {
 	* @param conn An open database connection 
 	*/
 	public static void option6(Connection conn) {
-		// Incomplete - Code for option 6 goes here
+		//Select all of the data in our view created in schema.sql. The view is called: 'staff_lifetime_success'
+		Statement stmt;
+		String query = "SELECT * FROM staff_lifetime_success";
+
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+
+			System.out.format("%-20s   %-14s%n", "EmployeeName,", "TotalValueSold");
+			while(rs.next()) {
+				System.out.format("%-20s   %-14s%n", rs.getString("FNAME") + " " + rs.getString("LNAME") + ",", "£" + rs.getInt("STAFF_AMOUNT_SOLD"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("\n\nError finding staff life-time success.\n\n");
+		}
 	}
 
 	/**
@@ -134,6 +154,8 @@ class Assignment {
 
 	}
 
+	public static SimpleDateFormat dFormat = new SimpleDateFormat("dd-MMM-yy");
+
 	public static void main(String args[]) throws SQLException, IOException {
 		// You should only need to fetch the connection details once
 		Connection conn = getConnection();
@@ -142,7 +164,7 @@ class Assignment {
 		while (carryOn) {
 			String choiceMade = "";
 			
-			System.out.println("(1) In-Store Purchases");
+			System.out.println("\n\n\n(1) In-Store Purchases");
 			System.out.println("(2) Collection");
 			System.out.println("(3) Delivery");
 			System.out.println("(4) Biggest Sellers");
@@ -160,13 +182,100 @@ class Assignment {
 					carryOn = false;
 					break;
 				case "1":
-					System.out.println("\nyou have picked in-store purchases");
+					System.out.println("\nYou have picked in-store purchases");
+					ArrayList<Integer> products = new ArrayList<>();
+					ArrayList<Integer> quantities = new ArrayList<>();
+					while (true) {
+						int newProductID = -1;
+
+						//Get the product ID.
+						while (true) {
+							try {
+								newProductID = Integer.parseInt(readEntry("Enter a product ID: "));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid product ID, must be an integer!");
+							}
+						}
+						products.add(newProductID);
+
+						//Get the quantity.
+						int newQuantitySold = -1;
+						while (true) {
+							try {
+								newQuantitySold = Integer.parseInt(readEntry("Enter the quantity sold: "));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid quantity sold, must be an integer!");
+							}
+						}
+						quantities.add(newQuantitySold);
+
+						//See if more products sold, if so restart the loop and get the other products and the quantities.
+						String isMore = readEntry("Is there another product in the order?: ");
+						if(isMore.equals("Y")) {
+							continue;
+						}
+
+						//Have all the products sold, now get the dates.
+						String dateOrdered = "";
+						while (true) {
+							dateOrdered = readEntry("Enter the date sold (DD-Mon-YY): ");
+							try {
+								dFormat.parse(dateOrdered);
+								break;
+							} catch (ParseException e) {
+								System.out.println("Not a valid date, must be of the form DD-Mon-YYYY");
+							}
+						}
+
+						int staffID = -1;
+						while (true) {
+							try {
+								staffID = Integer.parseInt(readEntry("Enter your staff ID: "));
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid staff ID, must be an integer!");
+							}
+						}
+
+						int[] productArray = new int[products.size()];
+						int[] quantitiesArray = new int[products.size()];
+						for(int i=0; i<products.size(); i++) {
+							productArray[i] = products.get(i);
+							quantitiesArray[i] = quantities.get(i);
+						}
+
+						//Call option 1, we have all the details.
+						option1(conn, productArray, quantitiesArray, dateOrdered, staffID);
+						break;
+					}
 					break;
 				case "2":
 					System.out.println("\nYou have picked, collection");
 					break;
+				case "3":
+					System.out.println("\nYou have picked, Delivery");
+					break;
+				case "4":
+					System.out.println("\nYou have picked, Biggest Sellers");
+					break;
+				case "5":
+					System.out.println("\nYou have picked, Reserved Stock");
+					break;
+				case "6":
+					System.out.println("\nYou have picked, Staff Life Time Success");
+					option6(conn);
+					break;
+				case "7":
+					System.out.println("\nYou have picked, Staff Contribution");
+					break;
+				case "8":
+					System.out.println("\nYou have picked, Employee of the Year");
+					break;
 				default:
 					System.out.println("\n" + choiceMade + " is not a valid choice, try again");
+					break;
 			}
 		}
 
