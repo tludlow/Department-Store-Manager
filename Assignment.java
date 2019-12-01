@@ -336,7 +336,43 @@ class Assignment {
 	* @param date The target date to test collection deliveries against
 	*/
 	public static void option5(Connection conn, String date) {
-		// Incomplete - Code for option 5 goes here
+		//Get all of the orders which have dates older/equal to 8 days
+		ArrayList<String> ordersToCancel = new ArrayList<>();
+		boolean toDelete = true;
+		try {
+			Statement stmt = conn.createStatement();
+			String query = "SELECT orders.OrderID AS orders_to_cancel FROM orders INNER JOIN collections ON " +
+			"orders.OrderID = collections.OrderID WHERE orders.OrderType = 'Collection' " +
+			"AND orders.OrderCompleted = 0 AND collections.CollectionDate <= TO_DATE('" + date + "') - 8";
+			ResultSet rs = stmt.executeQuery(query);
+
+			while(rs.next()) {
+				ordersToCancel.add(rs.getString("ORDERS_TO_CANCEL"));
+			}
+
+			stmt.close();
+		} catch (SQLException e) {
+			toDelete = false;
+			System.out.print("Error finding collection orders which should be cancelled.");
+		}
+
+		//Delete the order. Order_products will cascade along this deletion and the trigger will handle stock amounts being updated in inventory.
+		if(toDelete = false) {
+			System.out.println("Not deleting the orders, error finding the orders to delete.");
+		} else {
+			for(int i=0; i<ordersToCancel.size(); i++) {
+				try {
+					Statement stmt2 = conn.createStatement();
+					String query = "DELETE FROM orders WHERE orders.OrderID = " + ordersToCancel.get(i);
+					
+					stmt2.executeUpdate(query);
+					System.out.println("Order " + ordersToCancel.get(i) + " has been cancelled");
+					stmt2.close();
+				} catch (SQLException e) {
+					System.out.println("Error deleting the order from the database! OrderID = " + ordersToCancel.get(i));
+				}
+			}
+		}
 	}
 
 	/**

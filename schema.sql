@@ -124,6 +124,17 @@ BEGIN
 END;
 /
 
+-- Trigger to increment stock when an order is deleted.
+CREATE OR REPLACE TRIGGER increment_stock
+AFTER DELETE ON order_products
+FOR EACH ROW
+BEGIN
+	UPDATE inventory
+	SET ProductStockAmount = ProductStockAmount + :OLD.ProductQuantity
+	WHERE inventory.ProductID = :OLD.ProductID;
+END;
+/
+
 
 INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 100);
 INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 2, 40);
