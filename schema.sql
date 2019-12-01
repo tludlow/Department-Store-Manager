@@ -127,6 +127,7 @@ END;
 
 INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 100);
 INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 2, 40);
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 5, 3);
 
 
 
@@ -211,6 +212,16 @@ HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) >= 50000
 ORDER BY staff_amount_sold DESC;
 /
 
+CREATE or REPLACE VIEW best_products AS
+SELECT ProductID, ProductDesc, Price * ProductSales
+AS ProductSales FROM (
+	SELECT inventory.ProductID AS ProductID, ProductDesc, inventory.ProductPrice AS Price, SUM(ProductQuantity) AS ProductSales
+	FROM inventory
+		INNER JOIN order_products
+			ON inventory.ProductID = order_products.ProductID
+	GROUP BY inventory.ProductID, ProductDesc, inventory.ProductPrice
+) ORDER BY ProductSales DESC;
+/
 
 CREATE or REPLACE VIEW employee_of_the_year AS
 WITH StaffAmountSold AS ( 
