@@ -312,7 +312,23 @@ class Assignment {
 	* @param conn An open database connection 
 	*/
 	public static void option4(Connection conn) {
-		//Biggest selling items.
+		//Best selling items.
+		//Implemented using views in the schema.sql file. the view is called best_products.
+		try {
+			Statement stmt = conn.createStatement();
+			String query = "SELECT * FROM best_products";
+			ResultSet rs = stmt.executeQuery(query);
+
+			//Print in the desired output format.
+			System.out.format("%-8s   %-26s   %-12s%n", "ProductID,", "ProductDesc,", "TotalValueSold");
+			while(rs.next()) {
+				System.out.format("%-8s   %-26s   %-12s%n", rs.getString("ProductID"), rs.getString("ProductDesc"), "£" + rs.getString("PRODUCTSALES"));
+			}
+
+			stmt.close();
+		} catch (SQLException e) {
+			System.out.println("Error getting the best selling products.");
+		}
 	}
 
 	/**
@@ -328,17 +344,17 @@ class Assignment {
 	*/
 	public static void option6(Connection conn) {
 		//Select all of the data in our view created in schema.sql. The view is called: 'staff_lifetime_success'
-		Statement stmt;
-		String query = "SELECT * FROM staff_lifetime_success";
-
 		try {
-			stmt = conn.createStatement();
+			Statement stmt = conn.createStatement();
+			String query = "SELECT * FROM staff_lifetime_success";
 			ResultSet rs = stmt.executeQuery(query);
 
 			System.out.format("%-20s   %-14s%n", "EmployeeName,", "TotalValueSold");
 			while(rs.next()) {
 				System.out.format("%-20s   %-14s%n", rs.getString("FNAME") + " " + rs.getString("LNAME") + ",", "£" + rs.getInt("STAFF_AMOUNT_SOLD"));
 			}
+
+			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println("\n\nError finding staff life-time success.\n\n");
