@@ -320,9 +320,9 @@ class Assignment {
 			ResultSet rs = stmt.executeQuery(query);
 
 			//Print in the desired output format.
-			System.out.format("%-8s   %-26s   %-12s%n", "ProductID,", "ProductDesc,", "TotalValueSold");
+			System.out.format("%-14s%-26s%-12s%n", "ProductID,", "ProductDesc,", "TotalValueSold");
 			while(rs.next()) {
-				System.out.format("%-8s   %-26s   %-12s%n", rs.getString("ProductID"), rs.getString("ProductDesc"), "£" + rs.getString("PRODUCTSALES"));
+				System.out.format("%-14s%-26s%-12s%n", rs.getString("ProductID"), rs.getString("ProductDesc"), "£" + rs.getString("PRODUCTSALES"));
 			}
 
 			stmt.close();
@@ -349,9 +349,9 @@ class Assignment {
 			String query = "SELECT * FROM staff_lifetime_success";
 			ResultSet rs = stmt.executeQuery(query);
 
-			System.out.format("%-20s   %-14s%n", "EmployeeName,", "TotalValueSold");
+			System.out.format("%-20s%-14s%n", "EmployeeName,", "TotalValueSold");
 			while(rs.next()) {
-				System.out.format("%-20s   %-14s%n", rs.getString("FNAME") + " " + rs.getString("LNAME") + ",", "£" + rs.getInt("STAFF_AMOUNT_SOLD"));
+				System.out.format("%-20s%-14s%n", rs.getString("FNAME") + " " + rs.getString("LNAME") + ",", "£" + rs.getInt("STAFF_AMOUNT_SOLD"));
 			}
 
 			stmt.close();
@@ -717,9 +717,21 @@ class Assignment {
 					break;
 				case "4":
 					System.out.println("\nYou have picked, Biggest Sellers");
+					option4(conn);
 					break;
 				case "5":
 					System.out.println("\nYou have picked, Reserved Stock");
+					String currentDate = "";
+						while (true) {
+							currentDate = readEntry("Enter the date: ");
+							try {
+								dFormat.parse(currentDate);
+								break;
+							} catch (ParseException e) {
+								System.out.println("Not a valid date, must be of the form DD-Mon-YYYY");
+							}
+						}
+					option5(conn, currentDate);
 					break;
 				case "6":
 					System.out.println("\nYou have picked, Staff Life Time Success");
@@ -727,9 +739,22 @@ class Assignment {
 					break;
 				case "7":
 					System.out.println("\nYou have picked, Staff Contribution");
+					option7(conn);
 					break;
 				case "8":
 					System.out.println("\nYou have picked, Employee of the Year");
+					String currentYear = "";
+					int yearInt = -1;
+						while (true) {
+							currentYear = readEntry("Enter the year: ");
+							try {
+								yearInt = Integer.parseInt(currentYear);
+								break;
+							} catch (NumberFormatException e) {
+								System.out.println("Invalid year, it must be an integer!");
+							}
+						}
+					option8(conn, yearInt);
 					break;
 				default:
 					System.out.println("\n" + choiceMade + " is not a valid choice, try again");
