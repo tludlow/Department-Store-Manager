@@ -48,6 +48,7 @@ INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '
 INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '24-OCT-19');
 INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '03-OCT-19');
 INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '18-AUG-19');
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '21-AUG-19');
 
 
 /* ====================[ ORDER_PRODUCTS ]=================== */
@@ -139,6 +140,7 @@ END;
 INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 100);
 INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 2, 40);
 INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 5, 3);
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (5, 2, 20);
 
 
 
@@ -204,6 +206,7 @@ INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 1);
 INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 2);
 INSERT INTO staff_orders (StaffID, OrderID) VALUES (2, 3);
 INSERT INTO staff_orders (StaffID, OrderID) VALUES (3, 4);
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 5);
 
 
 /* ====================[ Views ]=================== */
@@ -211,61 +214,22 @@ INSERT INTO staff_orders (StaffID, OrderID) VALUES (3, 4);
 
 -- View that returns the staff which have sold at least £50,000 of items and ordered by the ones who have sold the most at the top (descending)
 CREATE or REPLACE VIEW staff_lifetime_success AS
-SELECT staff.FName, staff.LName, SUM(inventory.ProductPrice * order_products.ProductQuantity) AS staff_amount_sold
+SELECT CONCAT(CONCAT(staff.FName, ' '), staff.LName) AS Staff_Name, SUM(inventory.ProductPrice * order_products.ProductQuantity) AS staff_amount_sold
 FROM staff 
-	INNER JOIN staff_orders 
-		ON staff.StaffID = staff_orders.StaffID  
-	INNER JOIN order_products
-		ON staff_orders.OrderID = order_products.OrderID
+	INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID  
+	INNER JOIN order_products ON staff_orders.OrderID = order_products.OrderID
 	INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
 GROUP BY staff.FName, staff.LName
-HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) >= 50000
+HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) >= 50000 /* Can't use staff_amount_sold alias here as evaluated after HAVING */
 ORDER BY staff_amount_sold DESC;
 /
 
 CREATE or REPLACE VIEW best_products AS
-SELECT ProductID, ProductDesc, Price * ProductSales
-AS ProductSales FROM (
-	SELECT inventory.ProductID AS ProductID, ProductDesc, inventory.ProductPrice AS Price, SUM(ProductQuantity) AS ProductSales
+SELECT ProductID, ProductDesc, ProductPrice * QuantitySold AS Product_Revenue
+FROM (
+	SELECT inventory.ProductID AS ProductID, ProductDesc, inventory.ProductPrice AS ProductPrice, SUM(order_products.ProductQuantity) AS QuantitySold
 	FROM inventory
-		INNER JOIN order_products
-			ON inventory.ProductID = order_products.ProductID
+		INNER JOIN order_products ON inventory.ProductID = order_products.ProductID
 	GROUP BY inventory.ProductID, ProductDesc, inventory.ProductPrice
-) ORDER BY ProductSales DESC;
-/
-
-CREATE or REPLACE VIEW employee_of_the_year AS
-WITH StaffAmountSold AS ( 
-SELECT staff.FName AS FName, staff.LName as LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
-SUM(inventory.ProductPrice * order_products.ProductQuantity) AS staff_total_sold 
-FROM staff  
-    INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID  
-    INNER JOIN orders ON staff_orders.OrderID = orders.OrderID  
-    INNER JOIN order_products ON orders.OrderID = order_products.OrderID  
-    INNER JOIN inventory ON order_products.ProductID = inventory.ProductID  
-WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = EXTRACT(YEAR FROM sysdate)  /*Take the date out of the order placed part so we can check that it was this year. */
-GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID 
-), BestSellingItem AS ( 
-    SELECT inventory.ProductID AS ProductID  
-    FROM inventory  
-        INNER JOIN order_products  
-            ON inventory.ProductID = order_products.ProductID  
-        INNER JOIN orders  
-            ON order_products.OrderID = orders.OrderID  
-    WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = EXTRACT(YEAR FROM sysdate)   
-    HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000  
-    GROUP BY inventory.ProductID 
-)  
-SELECT FName, LName
-FROM StaffAmountSold  
-INNER JOIN ( 
-    SELECT StaffAmountSold.StaffID, COUNT(StaffAmountSold.ProductID) AS NumberBestSold  
-    FROM StaffAmountSold  
-    WHERE StaffAmountSold.ProductID IN  (SELECT BestSellingItem.ProductID FROM BestSellingItem) 
-    GROUP BY StaffAmountSold.StaffID 
-) StaffProductsCount ON StaffAmountSold.StaffID = StaffProductsCount.StaffID  
-WHERE StaffProductsCount.NumberBestSold = (SELECT COUNT(*) FROM BestSellingItem) 
-HAVING SUM(StaffAmountSold.staff_total_sold) >= 30000  
-GROUP BY StaffAmountSold.FName, StaffAmountSold.LName, StaffAmountSold.StaffID  
-ORDER BY StaffAmountSold.StaffID;
+) ORDER BY Product_Revenue DESC;
 /

@@ -322,11 +322,12 @@ class Assignment {
 			//Print in the desired output format.
 			System.out.format("%-14s%-26s%-12s%n", "ProductID,", "ProductDesc,", "TotalValueSold");
 			while(rs.next()) {
-				System.out.format("%-14s%-26s%-12s%n", rs.getString("ProductID"), rs.getString("ProductDesc"), "£" + rs.getString("PRODUCTSALES"));
+				System.out.format("%-14s%-26s%-12s%n", rs.getString("ProductID") + ",", rs.getString("ProductDesc") + ",", "£" + rs.getString("PRODUCT_REVENUE"));
 			}
 
 			stmt.close();
 		} catch (SQLException e) {
+			e.printStackTrace();
 			System.out.println("Error getting the best selling products.");
 		}
 	}
@@ -387,7 +388,7 @@ class Assignment {
 
 			System.out.format("%-20s%-14s%n", "EmployeeName,", "TotalValueSold");
 			while(rs.next()) {
-				System.out.format("%-20s%-14s%n", rs.getString("FNAME") + " " + rs.getString("LNAME") + ",", "£" + rs.getInt("STAFF_AMOUNT_SOLD"));
+				System.out.format("%-20s%-14s%n", rs.getString("STAFF_NAME") + ",", "£" + rs.getInt("STAFF_AMOUNT_SOLD"));
 			}
 
 			stmt.close();
@@ -409,7 +410,8 @@ class Assignment {
 	* @param year The target year we match employee and product sales against
 	*/
 	public static void option8(Connection conn, int year) {
-		// Incomplete - Code for option 8 goes here
+		//Great place to use a WITH clause so that we can get the data we want (all sales), aggregate it (so we have the total amount) 
+		//and then select the parts we want from it (the names of the employees).
 	}
 
 	public static Connection getConnection() {
