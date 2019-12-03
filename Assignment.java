@@ -402,40 +402,59 @@ class Assignment {
 
 	//A class used to represent the key of the hashmap in option 7. Allows me to store the staff selling what products as the key
 	//then the amount of this which was sold as the value.
-	static class StaffProductQuantity {
-		private String staff;
-		private int productID;
-		private int quantitySold;
+	static class StaffSales {
+		private int staffID;
+		private String staffName;
+		private HashMap<Integer, Integer> productSales;
 
-		public StaffProductQuantity(String staff, int productID, int quantitySold) {
-			this.staff = staff;
-			this.productID = productID;
-			this.quantitySold = quantitySold;
+		public StaffSales(int staffID, String staffName) {
+			this.staffID = staffID;
+			this.staffName = staffName;
+			this.productSales = new HashMap<Integer, Integer>();
 		}
 
 		public String getStaff() {
-			return this.staff;
+			return this.staffName;
 		}
 
-		public int getProductID() {
-			return this.productID;
+		public int getStaffID() {
+			return this.staffID;
 		}
 
-		public int getQuantitySold() {
-			return this.quantitySold;
+		public HashMap<Integer, Integer> getSales() {
+			return this.productSales;
+		}
+		
+		public void addProductSales(int product, int sales) {
+			this.productSales.put(product, sales);
 		}
 	}
 
-	private static int getQuantForEmployeeProduct(ArrayList<StaffProductQuantity> all, String employee, int product) {
-		for(int i=0; i<all.size(); i++) {
-			StaffProductQuantity workingWith = all.get(i);
-			if(workingWith.getStaff() == employee && workingWith.getProductID() == product) {
-				return workingWith.getQuantitySold();
+	private static boolean containedInStaffSales(ArrayList<StaffSales> ssales, int id) {
+		for(int i=0; i<ssales.size(); i++) {
+			if(ssales.get(i).getStaffID() == id) {
+				return true;
 			}
 		}
-		return 0;
+		return false;
 	}
 
+	private static int getSalesByStaff(ArrayList<StaffSales> ssales, String employee, int product) {
+		int toReturn = -1;
+		for(int i=0; i<ssales.size(); i++) {
+			if(ssales.get(i).getStaff() == employee) {
+				for (Map.Entry<Integer, Integer> entry : ssales.get(i).getSales().entrySet()) {
+					Integer key = entry.getKey();
+					Integer value = entry.getValue();
+					if(key == product) {
+						toReturn = value;
+						break;
+					}
+				}
+			}
+		}
+		return toReturn;
+	}
 
 	/**
 	* @param conn An open database connection 
@@ -448,7 +467,7 @@ class Assignment {
 
 		ArrayList<String> employees = new ArrayList<String>();
 		ArrayList<Integer> products = new ArrayList<Integer>();
-		ArrayList<StaffProductQuantity> staffQuantForProduct = new ArrayList<>();
+		ArrayList<StaffSales> salesByStaff = new ArrayList<>();
 
 		//Get all products selling over 20k
 		try {
@@ -483,14 +502,23 @@ class Assignment {
 			if(toFurtherAggregate) {
 				while(rs.next()) {
 					String staffName = rs.getString("FNAME") + " " + rs.getString("LNAME");
-					if(!employees.contains(staffName)) {
+					if(!containedInStaffSales(salesByStaff, rs.getInt("STAFFID"))) {
+						StaffSales newSSales = new StaffSales(rs.getInt("STAFFID"), staffName);
 						employees.add(staffName);
+						salesByStaff.add(newSSales);
 					}
 
-					StaffProductQuantity staffProd = new StaffProductQuantity(staffName, rs.getInt("PRODUCTID"), rs.getInt("PRODUCTSOLDAMOUNT"));
-					staffQuantForProduct.add(staffProd);
+					for(int i=0; i<salesByStaff.size(); i++) {
+						StaffSales sSales = salesByStaff.get(i);
+						if(sSales.getStaffID() == rs.getInt("STAFFID")) {
+							sSales.addProductSales(rs.getInt("PRODUCTID"), rs.getInt("PRODUCTSOLDAMOUNT"));
+						}
+					}
 				}
 			}
+
+			
+
 			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -498,7 +526,22 @@ class Assignment {
 			System.out.println("Error getting staff who have sold the best selling products.");
 		}
 
+		//If we got the data without error we should format it nicely for the output as required.
 		if(toFurtherAggregate) {
+			System.out.println("\n\n\n\n");
+			for(int i=0; i<salesByStaff.size(); i++) {
+				StaffSales ssales = salesByStaff.get(i);
+				System.out.print("[" + ssales.getStaff() + "] ");
+				for (Map.Entry<Integer, Integer> entry : ssales.getSales().entrySet()) {
+					Integer key = entry.getKey();
+					Integer value = entry.getValue();
+					System.out.print(" Has sold: " + key + ": " + value + " times.    ");
+				}
+				System.out.print("\n");
+			}
+			System.out.println("\n\n\n\n");
+
+
 			//Print the header line for the output.
 			System.out.format("%-20s", "EmployeeName,");
 			for(int i=0; i<products.size(); i++) {
@@ -506,13 +549,16 @@ class Assignment {
 			}
 			System.out.print("\n");
 
-			//Get the amount each staff member sold of each product.
 			for(int i =0; i<employees.size(); i++) {
 				System.out.format("%-20s", employees.get(i) + ",  ");
 				for(int j=0; j<products.size(); j++) {
-					//Check if the employee has sold this product
-					int toPrint = getQuantForEmployeeProduct(staffQuantForProduct, employees.get(i), products.get(j));
-					System.out.format("%-20s", toPrint);
+					int salesForProductByStaff = getSalesByStaff(salesByStaff, employees.get(i), products.get(j));
+					if(salesForProductByStaff >= 0) {
+						System.out.format("%-20s", salesForProductByStaff + ", ");
+					} else {
+						System.out.format("%-20s", "0, ");
+					}
+					
 				}
 				System.out.print("\n");
 			}

@@ -33,9 +33,7 @@ GROUP BY StaffSold.FName, StaffSold.LName, StaffSold.StaffID
 );
 
 
-
-
-
+ 
 WITH BestStaff AS (
     SELECT staff.FName AS FName, staff.LName AS LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
     inventory.ProductPrice AS ProductPrice, SUM(ProductQuantity) AS ProductSoldAmount
