@@ -1,6 +1,8 @@
 
 # CS258 Coursework - u1814232
 
+Should be noted that I had to modify the connection string for the database to make it run on daisy. This string was found from the JDBC lecture slides and the old one was commented out. You may want to change it back when you run the code.
+
 **Tables**
 All the tables have been implemented as described in the Coursework specification. Constraints have been added to the tables so that the data contained is appropriate for the department store. (E.g: the stock of an item in inventory cant go below 0)
 

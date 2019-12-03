@@ -689,11 +689,9 @@ class Assignment {
 			
 			switch (choiceMade) {
 				case "0":
-					System.out.println("\n\nExiting department store database.\n\n");
 					carryOn = false;
 					break;
 				case "1":
-					System.out.println("\nYou have picked in-store purchases");
 					ArrayList<Integer> products = new ArrayList<>();
 					ArrayList<Integer> quantities = new ArrayList<>();
 					while (true) {
@@ -763,7 +761,6 @@ class Assignment {
 					}
 					break;
 				case "2":
-					System.out.println("\nYou have picked, collection");
 					ArrayList<Integer> products2 = new ArrayList<>();
 					ArrayList<Integer> quantities2 = new ArrayList<>();
 					while (true) {
@@ -859,7 +856,6 @@ class Assignment {
 					}
 					break;
 				case "3":
-					System.out.println("\nYou have picked, Delivery");
 					ArrayList<Integer> products3 = new ArrayList<>();
 					ArrayList<Integer> quantities3 = new ArrayList<>();
 					while (true) {
@@ -979,11 +975,9 @@ class Assignment {
 					}
 					break;
 				case "4":
-					System.out.println("\nYou have picked, Biggest Sellers");
 					option4(conn);
 					break;
 				case "5":
-					System.out.println("\nYou have picked, Reserved Stock");
 					String currentDate = "";
 						while (true) {
 							currentDate = readEntry("Enter the date: ");
@@ -997,15 +991,12 @@ class Assignment {
 					option5(conn, currentDate);
 					break;
 				case "6":
-					System.out.println("\nYou have picked, Staff Life Time Success");
 					option6(conn);
 					break;
 				case "7":
-					System.out.println("\nYou have picked, Staff Contribution");
 					option7(conn);
 					break;
 				case "8":
-					System.out.println("\nYou have picked, Employee of the Year");
 					String currentYear = "";
 					int yearInt = -1;
 						while (true) {
