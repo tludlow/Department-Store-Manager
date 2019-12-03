@@ -521,7 +521,7 @@ class Assignment {
 			//printed to the screen as desired. That is done now.
 			if(toFurtherAggregate) {
 				while(rs.next()) {
-					String staffName = rs.getString("FNAME") + " " + rs.getString("LNAME");
+					String staffName = rs.getString("STAFFNAME");
 					//Add the staff member to the staff sales array onl if they arent already contaiend in the array.
 					if(!containedInStaffSales(salesByStaff, rs.getInt("STAFFID"))) {
 						StaffSales newSSales = new StaffSales(rs.getInt("STAFFID"), staffName);
@@ -543,6 +543,12 @@ class Assignment {
 			e.printStackTrace();
 			toFurtherAggregate = false;
 			System.out.println("Error getting staff who have sold the best selling products.");
+		}
+		
+		//If theres actual data to print.
+		if(employees.size() == 0 && products.size() == 0) {
+			System.out.println("No data found to print.");
+			return;
 		}
 
 		//If we got the data without error we should format it nicely for the output as required.
