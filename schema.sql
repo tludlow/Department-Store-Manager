@@ -174,6 +174,34 @@ CREATE TABLE staff_orders (
 	FOREIGN KEY (OrderID) REFERENCES orders(OrderID) ON DELETE CASCADE
 );
 
+
+INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('iPhone X', 699.99, 1000);	
+INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Macbook Air', 1299.99, 1000);	
+INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Macbook Pro', 2499.99, 1000);	
+INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Coca Cola',0.79, 1000);	
+INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Big Mac', 8.55, 1000);
+
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '1', '26-NOV-19');	
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '24-OCT-19');	
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '03-OCT-19');	
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '18-AUG-19');	
+INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '21-AUG-19');
+
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 100);	
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 2, 40);	
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 5, 3);	
+INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (5, 2, 20);
+
+INSERT INTO staff (FName, LName) VALUES ('Thomas', 'Ludlow');	
+INSERT INTO staff (FName, LName) VALUES ('Jeff', 'Marks');	
+INSERT INTO staff (FName, LName) VALUES ('Bill', 'Bob');
+
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 1);	
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 2);	
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (2, 3);	
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (3, 4);	
+INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 5);
+
 /* ====================[ Views ]=================== */
 -- Views have been made for some of the options. Why code in java when you can code in sql? hmmm thinkingface.
 
@@ -203,7 +231,7 @@ FROM (
 -- View containing the staff who have sold the products that have sold the most, option 7 view.
 CREATE OR REPLACE VIEW staff_who_sold_best_products AS
 SELECT StaffID, CONCAT(CONCAT(FName, ' '), LName) AS STAFFNAME, PRODUCTID, ProductSoldAmount FROM (
-	WITH BestStaff AS (
+		WITH BestStaff AS (
 		SELECT staff.FName AS FName, staff.LName AS LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
 		inventory.ProductPrice AS ProductPrice, SUM(ProductQuantity) AS ProductSoldAmount
 		FROM staff
@@ -221,10 +249,10 @@ SELECT StaffID, CONCAT(CONCAT(FName, ' '), LName) AS STAFFNAME, PRODUCTID, Produ
 	SELECT BestStaff.FName, BestStaff.LName, BestStaff.StaffID, BestStaff.ProductID, BestStaff.ProductSoldAmount
 	FROM BestStaff
 	INNER JOIN (
-		SELECT BestStaff.StaffID AS StaffID, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
+		SELECT BestStaff.StaffID AS StaffID, BestStaff.FName AS FName, BestStaff.LName AS LName, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
 		FROM BestStaff
-		GROUP BY BestStaff.StaffID
-		) StaffTotalBestSellers ON BestStaff.StaffID = StaffTotalBestSellers.StaffID
+		GROUP BY BestStaff.StaffID, BestStaff.FName, BestStaff.LName
+		) StaffTotalBestSellers ON (BestStaff.StaffID = StaffTotalBestSellers.StaffID AND BestStaff.FName = StaffTotalBestSellers.FName AND BestStaff.LName = StaffTotalBestSellers.LName)
 	ORDER BY StaffTotalBestSellers.StaffSoldAmount DESC
 )
 /

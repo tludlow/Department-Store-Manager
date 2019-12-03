@@ -589,6 +589,7 @@ class Assignment {
 		boolean toPrint = true;
 		try {
 			Statement stmt = conn.createStatement();
+			//You could also optionally implement the query below using the two tables and minusing the output to generate a set of nonunqiues.
 			String query = "SELECT CONCAT(CONCAT(FName, ' '), Lname) AS STAFF_NAME FROM ( " +
 								"WITH MostSoldProducts AS ( " +
 								"    SELECT inventory.ProductID AS ProductID " +
@@ -612,13 +613,13 @@ class Assignment {
 								"SELECT StaffSold.FName AS FName, StaffSold.LName AS LName " +
 								"FROM StaffSold " +
 								"    INNER JOIN ( " +
-								"        SELECT StaffSold.StaffID, COUNT(StaffSold.ProductID) AS AmountSoldByStaff " +
+								"        SELECT StaffSold.StaffID, StaffSold.FName AS FName, StaffSold.LName AS LName, COUNT(StaffSold.ProductID) AS StaffSalesOfMostSold " +
 								"        FROM StaffSold " +
 								"        WHERE StaffSold.ProductID IN (SELECT MostSoldProducts.ProductID FROM MostSoldProducts) " +
-								"        GROUP BY StaffSold.StaffID " +
+								"        GROUP BY StaffSold.StaffID, StaffSold.FName, StaffSold.LName " +
 								"    ) " +
-								"    StaffProductsCount ON StaffSold.StaffID = StaffProductsCount.StaffID " +
-								"WHERE StaffProductsCount.AmountSoldByStaff = (SELECT COUNT(*) FROM MostSoldProducts) " +
+								"    StaffProductsCount ON (StaffSold.StaffID = StaffProductsCount.StaffID AND StaffSold.FName = StaffProductsCount.FName AND StaffSold.LName = StaffProductsCount.LName) " +
+								"WHERE StaffProductsCount.StaffSalesOfMostSold = (SELECT COUNT(*) FROM MostSoldProducts) " +
 								"HAVING SUM(StaffSold.Revenue) >= 30000 " +
 								"GROUP BY StaffSold.FName, StaffSold.LName, StaffSold.StaffID " +
 								")"; 
@@ -886,7 +887,7 @@ class Assignment {
 
 						//See if more products sold, if so restart the loop and get the other products and the quantities.
 						String isMore = readEntry("Is there another product in the order?: ");
-						if(isMore.equals("Y")) {
+						if(isMore.equals("Y") || isMore.equals("Yes") || isMore.equals("y") || isMore.equals("yes")) {
 							continue;
 						}
 

@@ -21,12 +21,12 @@ WITH MostSoldProducts AS (
 SELECT StaffSold.FName AS FName, StaffSold.LName AS LName
 FROM StaffSold
     INNER JOIN (
-        SELECT StaffSold.StaffID, COUNT(StaffSold.ProductID) AS StaffSalesOfMostSold
+        SELECT StaffSold.StaffID, StaffSold.FName AS FName, StaffSold.LName AS LName, COUNT(StaffSold.ProductID) AS StaffSalesOfMostSold
         FROM StaffSold
         WHERE StaffSold.ProductID IN (SELECT MostSoldProducts.ProductID FROM MostSoldProducts)
-        GROUP BY StaffSold.StaffID 
+        GROUP BY StaffSold.StaffID, StaffSold.FName, StaffSold.LName
     ) 
-    StaffProductsCount ON StaffSold.StaffID = StaffProductsCount.StaffID
+    StaffProductsCount ON (StaffSold.StaffID = StaffProductsCount.StaffID AND StaffSold.FName = StaffProductsCount.FName AND StaffSold.LName = StaffProductsCount.LName)
 WHERE StaffProductsCount.StaffSalesOfMostSold = (SELECT COUNT(*) FROM MostSoldProducts)
 HAVING SUM(StaffSold.Revenue) >= 30000
 GROUP BY StaffSold.FName, StaffSold.LName, StaffSold.StaffID
@@ -52,10 +52,10 @@ WITH BestStaff AS (
 SELECT BestStaff.FName, BestStaff.LName, BestStaff.StaffID, BestStaff.ProductID, BestStaff.ProductSoldAmount
 FROM BestStaff
 INNER JOIN (
-    SELECT BestStaff.StaffID AS StaffID, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
+    SELECT BestStaff.StaffID AS StaffID, BestStaff.FName AS FName, BestStaff.LName AS LName, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
     FROM BestStaff
-    GROUP BY BestStaff.StaffID
-    ) StaffTotalBestSellers ON BestStaff.StaffID = StaffTotalBestSellers.StaffID
+    GROUP BY BestStaff.StaffID, BestStaff.FName, BestStaff.LName
+    ) StaffTotalBestSellers ON (BestStaff.StaffID = StaffTotalBestSellers.StaffID AND BestStaff.FName = StaffTotalBestSellers.FName AND BestStaff.LName = StaffTotalBestSellers.LName)
 ORDER BY StaffTotalBestSellers.StaffSoldAmount DESC;
 
 
