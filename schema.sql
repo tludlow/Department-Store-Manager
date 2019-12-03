@@ -175,32 +175,32 @@ CREATE TABLE staff_orders (
 );
 
 
-INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('iPhone X', 699.99, 1000);	
-INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Macbook Air', 1299.99, 1000);	
-INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Macbook Pro', 2499.99, 1000);	
-INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Coca Cola',0.79, 1000);	
-INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Big Mac', 8.55, 1000);
+-- INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('iPhone X', 699.99, 1000);	
+-- INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Macbook Air', 1299.99, 1000);	
+-- INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Macbook Pro', 2499.99, 1000);	
+-- INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Coca Cola',0.79, 1000);	
+-- INSERT INTO inventory (ProductDesc, ProductPrice, ProductStockAmount) VALUES ('Big Mac', 8.55, 1000);
 
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '1', '26-NOV-19');	
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '24-OCT-19');	
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '03-OCT-19');	
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '18-AUG-19');	
-INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '21-AUG-19');
+-- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('InStore', '1', '26-NOV-19');	
+-- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '24-OCT-19');	
+-- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Collection', '1', '03-OCT-19');	
+-- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '18-AUG-19');	
+-- INSERT INTO orders (OrderType, OrderCompleted, OrderPlaced) VALUES ('Delivery', '0', '21-AUG-19');
 
-INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 100);	
-INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 2, 40);	
-INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 5, 3);	
-INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (5, 2, 20);
+-- INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (1, 1, 100);	
+-- INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 2, 40);	
+-- INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (3, 5, 3);	
+-- INSERT INTO order_products (OrderID, ProductID, ProductQuantity) VALUES (5, 2, 20);
 
-INSERT INTO staff (FName, LName) VALUES ('Thomas', 'Ludlow');	
-INSERT INTO staff (FName, LName) VALUES ('Jeff', 'Marks');	
-INSERT INTO staff (FName, LName) VALUES ('Bill', 'Bob');
+-- INSERT INTO staff (FName, LName) VALUES ('Thomas', 'Ludlow');	
+-- INSERT INTO staff (FName, LName) VALUES ('Jeff', 'Marks');	
+-- INSERT INTO staff (FName, LName) VALUES ('Bill', 'Bob');
 
-INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 1);	
-INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 2);	
-INSERT INTO staff_orders (StaffID, OrderID) VALUES (2, 3);	
-INSERT INTO staff_orders (StaffID, OrderID) VALUES (3, 4);	
-INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 5);
+-- INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 1);	
+-- INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 2);	
+-- INSERT INTO staff_orders (StaffID, OrderID) VALUES (2, 3);	
+-- INSERT INTO staff_orders (StaffID, OrderID) VALUES (3, 4);	
+-- INSERT INTO staff_orders (StaffID, OrderID) VALUES (1, 5);
 
 /* ====================[ Views ]=================== */
 -- Views have been made for some of the options. Why code in java when you can code in sql? hmmm thinkingface.
@@ -252,7 +252,7 @@ SELECT StaffID, CONCAT(CONCAT(FName, ' '), LName) AS STAFFNAME, PRODUCTID, Produ
 		SELECT BestStaff.StaffID AS StaffID, BestStaff.FName AS FName, BestStaff.LName AS LName, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
 		FROM BestStaff
 		GROUP BY BestStaff.StaffID, BestStaff.FName, BestStaff.LName
-		) StaffTotalBestSellers ON (BestStaff.StaffID = StaffTotalBestSellers.StaffID AND BestStaff.FName = StaffTotalBestSellers.FName AND BestStaff.LName = StaffTotalBestSellers.LName)
-	ORDER BY StaffTotalBestSellers.StaffSoldAmount DESC
+		) StaffBestOverall ON (BestStaff.StaffID = StaffBestOverall.StaffID AND BestStaff.FName = StaffBestOverall.FName AND BestStaff.LName = StaffBestOverall.LName)
+	ORDER BY StaffBestOverall.StaffSoldAmount DESC
 )
 /

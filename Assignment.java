@@ -618,8 +618,8 @@ class Assignment {
 								"        WHERE StaffSold.ProductID IN (SELECT MostSoldProducts.ProductID FROM MostSoldProducts) " +
 								"        GROUP BY StaffSold.StaffID, StaffSold.FName, StaffSold.LName " +
 								"    ) " +
-								"    StaffProductsCount ON (StaffSold.StaffID = StaffProductsCount.StaffID AND StaffSold.FName = StaffProductsCount.FName AND StaffSold.LName = StaffProductsCount.LName) " +
-								"WHERE StaffProductsCount.StaffSalesOfMostSold = (SELECT COUNT(*) FROM MostSoldProducts) " +
+								"    StaffAmountOverall ON (StaffSold.StaffID = StaffAmountOverall.StaffID AND StaffSold.FName = StaffAmountOverall.FName AND StaffSold.LName = StaffAmountOverall.LName) " +
+								"WHERE StaffAmountOverall.StaffSalesOfMostSold = (SELECT COUNT(*) FROM MostSoldProducts) " +
 								"HAVING SUM(StaffSold.Revenue) >= 30000 " +
 								"GROUP BY StaffSold.FName, StaffSold.LName, StaffSold.StaffID " +
 								")"; 
