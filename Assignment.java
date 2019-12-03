@@ -1,7 +1,9 @@
 import java.io.*;
 import java.sql.*;
-import java.util.ArrayList;
-import java.text.DateFormat;
+import java.util.*;
+
+import oracle.net.aso.i;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -398,11 +400,124 @@ class Assignment {
 		}
 	}
 
+	//A class used to represent the key of the hashmap in option 7. Allows me to store the staff selling what products as the key
+	//then the amount of this which was sold as the value.
+	static class StaffProductQuantity {
+		private String staff;
+		private int productID;
+		private int quantitySold;
+
+		public StaffProductQuantity(String staff, int productID, int quantitySold) {
+			this.staff = staff;
+			this.productID = productID;
+			this.quantitySold = quantitySold;
+		}
+
+		public String getStaff() {
+			return this.staff;
+		}
+
+		public int getProductID() {
+			return this.productID;
+		}
+
+		public int getQuantitySold() {
+			return this.quantitySold;
+		}
+	}
+
+	private static int getQuantForEmployeeProduct(ArrayList<StaffProductQuantity> all, String employee, int product) {
+		for(int i=0; i<all.size(); i++) {
+			StaffProductQuantity workingWith = all.get(i);
+			if(workingWith.getStaff() == employee && workingWith.getProductID() == product) {
+				return workingWith.getQuantitySold();
+			}
+		}
+		return 0;
+	}
+
+
 	/**
 	* @param conn An open database connection 
 	*/
 	public static void option7(Connection conn) {
-		// Incomplete - Code for option 7 goes here
+		//Get the details of the staff who have sold products selling more than 20k
+		//Implemented as a view called: "staff_who_sold_best_products"
+		boolean toFurtherAggregate = true;
+		boolean toGetStaff = true;
+
+		ArrayList<String> employees = new ArrayList<String>();
+		ArrayList<Integer> products = new ArrayList<Integer>();
+		ArrayList<StaffProductQuantity> staffQuantForProduct = new ArrayList<>();
+
+		//Get all products selling over 20k
+		try {
+			Statement stmt = conn.createStatement();
+			String query = "SELECT * FROM best_products WHERE PRODUCT_REVENUE > 20000";
+
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next()) {
+				products.add(rs.getInt("PRODUCTID"));
+			}
+			stmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			toFurtherAggregate = false;
+			toGetStaff = false;
+			System.out.println("Error getting top selling products IDs (ones over 20k)");
+		}
+		
+		//Dont get the staff if we errored getting products.
+		if(toGetStaff == false) {
+			return;
+		}
+
+		try {
+			Statement stmt = conn.createStatement();
+			String query = "SELECT * FROM staff_who_sold_best_products";
+
+			ResultSet rs = stmt.executeQuery(query);
+			
+			//The data returned by this query is not in the right form. it needs further aggregate before it can be
+			//printed to the screen as desired. That is done now.
+			if(toFurtherAggregate) {
+				while(rs.next()) {
+					String staffName = rs.getString("FNAME") + " " + rs.getString("LNAME");
+					if(!employees.contains(staffName)) {
+						employees.add(staffName);
+					}
+
+					StaffProductQuantity staffProd = new StaffProductQuantity(staffName, rs.getInt("PRODUCTID"), rs.getInt("PRODUCTSOLDAMOUNT"));
+					staffQuantForProduct.add(staffProd);
+				}
+			}
+			stmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			toFurtherAggregate = false;
+			System.out.println("Error getting staff who have sold the best selling products.");
+		}
+
+		if(toFurtherAggregate) {
+			//Print the header line for the output.
+			System.out.format("%-20s", "EmployeeName,");
+			for(int i=0; i<products.size(); i++) {
+				System.out.format("%-20s", "Product " + products.get(i) + ", ");
+			}
+			System.out.print("\n");
+
+			//Get the amount each staff member sold of each product.
+			for(int i =0; i<employees.size(); i++) {
+				System.out.format("%-20s", employees.get(i) + ",  ");
+				for(int j=0; j<products.size(); j++) {
+					//Check if the employee has sold this product
+					int toPrint = getQuantForEmployeeProduct(staffQuantForProduct, employees.get(i), products.get(j));
+					System.out.format("%-20s", toPrint);
+				}
+				System.out.print("\n");
+			}
+			
+		}
 	}
 
 	/**
@@ -412,6 +527,57 @@ class Assignment {
 	public static void option8(Connection conn, int year) {
 		//Great place to use a WITH clause so that we can get the data we want (all sales), aggregate it (so we have the total amount) 
 		//and then select the parts we want from it (the names of the employees).
+		boolean toPrint = true;
+		try {
+			Statement stmt = conn.createStatement();
+			String query = "SELECT CONCAT(CONCAT(FName, ' '), Lname) AS STAFF_NAME FROM (" +
+								"WITH MostSoldProducts AS ( " +
+								"    SELECT inventory.ProductID AS ProductID" +
+								"    FROM inventory" +
+								"        INNER JOIN order_products ON inventory.ProductID = order_products.ProductID" +
+								"        INNER JOIN orders ON order_products.OrderID = orders.OrderID" +
+								"    WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = 2019" +
+								"    HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000" +
+								"    GROUP BY inventory.ProductID" +
+								"), StaffSold AS (" +
+								"    SELECT staff.FName AS FName, staff.LName as LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID," +
+								"    SUM(inventory.ProductPrice * order_products.ProductQuantity) AS Revenue" +
+								"    FROM staff" +
+								"        INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID" +
+								"        INNER JOIN orders ON staff_orders.OrderID = orders.OrderID" +
+								"        INNER JOIN order_products ON orders.OrderID = order_products.OrderID" +
+								"        INNER JOIN inventory ON order_products.ProductID = inventory.ProductID" +
+								"    WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = 2019" +
+								"    GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID" +
+								")" +
+								"SELECT StaffSold.FName AS FName, StaffSold.LName AS LName" +
+								"FROM StaffSold" +
+								"    INNER JOIN (" +
+								"        SELECT StaffSold.StaffID, COUNT(StaffSold.ProductID) AS AmountSoldByStaff" +
+								"        FROM StaffSold" +
+								"        WHERE StaffSold.ProductID IN (SELECT MostSoldProducts.ProductID FROM MostSoldProducts)" +
+								"        GROUP BY StaffSold.StaffID " +
+								"    ) " +
+								"    StaffProductsCount ON StaffSold.StaffID = StaffProductsCount.StaffID" +
+								"WHERE StaffProductsCount.AmountSoldByStaff = (SELECT COUNT(*) FROM MostSoldProducts)" +
+								"HAVING SUM(StaffSold.Revenue) >= 30000" +
+								"GROUP BY StaffSold.FName, StaffSold.LName, StaffSold.StaffID" +
+								")"; 
+
+			ResultSet rs = stmt.executeQuery(query);
+			
+			if(toPrint) {
+				while(rs.next()) {
+					System.out.println(rs.getString("STAFF_NAME"));
+				}
+			}
+
+			stmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			toPrint = false;
+			System.out.println("Error getting employees of the year details!");
+		}
 	}
 
 	public static Connection getConnection() {

@@ -1,0 +1,33 @@
+SELECT CONCAT(CONCAT(FName, ' '), Lname) AS STAFF_NAME FROM (
+WITH MostSoldProducts AS ( 
+    SELECT inventory.ProductID AS ProductID
+    FROM inventory
+        INNER JOIN order_products ON inventory.ProductID = order_products.ProductID
+        INNER JOIN orders ON order_products.OrderID = orders.OrderID
+    WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = 2019
+    HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000
+    GROUP BY inventory.ProductID
+), StaffSold AS (
+    SELECT staff.FName AS FName, staff.LName as LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
+    SUM(inventory.ProductPrice * order_products.ProductQuantity) AS Revenue
+    FROM staff
+        INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID
+        INNER JOIN orders ON staff_orders.OrderID = orders.OrderID
+        INNER JOIN order_products ON orders.OrderID = order_products.OrderID
+        INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
+    WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = 2019
+    GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID
+)
+SELECT StaffSold.FName AS FName, StaffSold.LName AS LName
+FROM StaffSold
+    INNER JOIN (
+        SELECT StaffSold.StaffID, COUNT(StaffSold.ProductID) AS AmountSoldByStaff
+        FROM StaffSold
+        WHERE StaffSold.ProductID IN (SELECT MostSoldProducts.ProductID FROM MostSoldProducts)
+        GROUP BY StaffSold.StaffID 
+    ) 
+    StaffProductsCount ON StaffSold.StaffID = StaffProductsCount.StaffID
+WHERE StaffProductsCount.AmountSoldByStaff = (SELECT COUNT(*) FROM MostSoldProducts)
+HAVING SUM(StaffSold.Revenue) >= 30000
+GROUP BY StaffSold.FName, StaffSold.LName, StaffSold.StaffID
+);

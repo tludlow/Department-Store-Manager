@@ -221,7 +221,7 @@ FROM staff
 	INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
 GROUP BY staff.FName, staff.LName
 HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) >= 50000 /* Can't use staff_amount_sold alias here as evaluated after HAVING */
-ORDER BY staff_amount_sold DESC;
+ORDER BY staff_amount_sold DESC
 /
 
 CREATE or REPLACE VIEW best_products AS
@@ -231,5 +231,31 @@ FROM (
 	FROM inventory
 		INNER JOIN order_products ON inventory.ProductID = order_products.ProductID
 	GROUP BY inventory.ProductID, ProductDesc, inventory.ProductPrice
-) ORDER BY Product_Revenue DESC;
+) ORDER BY Product_Revenue DESC
+/
+
+CREATE OR REPLACE VIEW staff_who_sold_best_products AS
+WITH BestStaff AS (
+    SELECT staff.FName AS FName, staff.LName AS LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
+    inventory.ProductPrice AS ProductPrice, SUM(ProductQuantity) AS ProductSoldAmount
+    FROM staff
+        INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID
+        INNER JOIN order_products ON staff_orders.OrderID = order_products.OrderID
+        INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
+    WHERE inventory.ProductID IN ( 
+        SELECT inventory.ProductID
+        FROM inventory
+            INNER JOIN order_products ON inventory.ProductID = order_products.ProductID
+        GROUP BY inventory.ProductID
+        HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000
+    ) GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID, inventory.ProductPrice
+)
+SELECT BestStaff.FName, BestStaff.LName, BestStaff.StaffID, BestStaff.ProductID, BestStaff.ProductSoldAmount
+FROM BestStaff
+INNER JOIN (
+    SELECT BestStaff.StaffID AS StaffID, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
+    FROM BestStaff
+    GROUP BY BestStaff.StaffID
+    ) StaffTotalBestSellers ON BestStaff.StaffID = StaffTotalBestSellers.StaffID
+ORDER BY StaffTotalBestSellers.StaffSoldAmount DESC
 /
