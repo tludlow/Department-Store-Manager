@@ -430,6 +430,12 @@ class Assignment {
 		}
 	}
 
+	/**
+	 * Finds if a staff member has sold items and been stored or not.
+	 * @param ssales StaffSales
+	 * @param id The id of the staff member
+	 * @return true if contained already false if not contained.
+	 */
 	private static boolean containedInStaffSales(ArrayList<StaffSales> ssales, int id) {
 		for(int i=0; i<ssales.size(); i++) {
 			if(ssales.get(i).getStaffID() == id) {
@@ -439,6 +445,13 @@ class Assignment {
 		return false;
 	}
 
+	/**
+	 * Finds the amount sold of a product by a staff member.
+	 * @param ssales List of StaffSales
+	 * @param employee The person selling
+	 * @param product The product being sold.
+	 * @return -1 if not sold, X where x is the amount sold if sold.
+	 */
 	private static int getSalesByStaff(ArrayList<StaffSales> ssales, String employee, int product) {
 		int toReturn = -1;
 		for(int i=0; i<ssales.size(); i++) {
@@ -491,6 +504,13 @@ class Assignment {
 			return;
 		}
 
+		//Get the view which holds the data required for the option 7 output.
+		//Add all of the staff members into the StaffSales arraylist
+		//Add all of the products to each staff member in the arraylist.
+		//Handle the output nicely as required. The view doesnt return a perfect output we need to modify it a bit more.
+
+		//You can implement the view to return a near perfect output if you use a SQL pivot function on the output of
+		//the current view called: "staff_who_sold_best_products"
 		try {
 			Statement stmt = conn.createStatement();
 			String query = "SELECT * FROM staff_who_sold_best_products";
@@ -502,12 +522,14 @@ class Assignment {
 			if(toFurtherAggregate) {
 				while(rs.next()) {
 					String staffName = rs.getString("FNAME") + " " + rs.getString("LNAME");
+					//Add the staff member to the staff sales array onl if they arent already contaiend in the array.
 					if(!containedInStaffSales(salesByStaff, rs.getInt("STAFFID"))) {
 						StaffSales newSSales = new StaffSales(rs.getInt("STAFFID"), staffName);
 						employees.add(staffName);
 						salesByStaff.add(newSSales);
 					}
 
+					//Add the product sale to the staff member.
 					for(int i=0; i<salesByStaff.size(); i++) {
 						StaffSales sSales = salesByStaff.get(i);
 						if(sSales.getStaffID() == rs.getInt("STAFFID")) {
@@ -516,9 +538,6 @@ class Assignment {
 					}
 				}
 			}
-
-			
-
 			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -528,20 +547,6 @@ class Assignment {
 
 		//If we got the data without error we should format it nicely for the output as required.
 		if(toFurtherAggregate) {
-			System.out.println("\n\n\n\n");
-			for(int i=0; i<salesByStaff.size(); i++) {
-				StaffSales ssales = salesByStaff.get(i);
-				System.out.print("[" + ssales.getStaff() + "] ");
-				for (Map.Entry<Integer, Integer> entry : ssales.getSales().entrySet()) {
-					Integer key = entry.getKey();
-					Integer value = entry.getValue();
-					System.out.print(" Has sold: " + key + ": " + value + " times.    ");
-				}
-				System.out.print("\n");
-			}
-			System.out.println("\n\n\n\n");
-
-
 			//Print the header line for the output.
 			System.out.format("%-20s", "EmployeeName,");
 			for(int i=0; i<products.size(); i++) {
@@ -549,6 +554,8 @@ class Assignment {
 			}
 			System.out.print("\n");
 
+			//Prints the column for employee name.
+			//then prints across the row for each employee with the data of their sales.
 			for(int i =0; i<employees.size(); i++) {
 				System.out.format("%-20s", employees.get(i) + ",  ");
 				for(int j=0; j<products.size(); j++) {
