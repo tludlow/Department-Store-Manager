@@ -21,13 +21,13 @@ WITH MostSoldProducts AS (
 SELECT StaffSold.FName AS FName, StaffSold.LName AS LName
 FROM StaffSold
     INNER JOIN (
-        SELECT StaffSold.StaffID, COUNT(StaffSold.ProductID) AS AmountSoldByStaff
+        SELECT StaffSold.StaffID, COUNT(StaffSold.ProductID) AS StaffSalesOfMostSold
         FROM StaffSold
         WHERE StaffSold.ProductID IN (SELECT MostSoldProducts.ProductID FROM MostSoldProducts)
         GROUP BY StaffSold.StaffID 
     ) 
     StaffProductsCount ON StaffSold.StaffID = StaffProductsCount.StaffID
-WHERE StaffProductsCount.AmountSoldByStaff = (SELECT COUNT(*) FROM MostSoldProducts)
+WHERE StaffProductsCount.StaffSalesOfMostSold = (SELECT COUNT(*) FROM MostSoldProducts)
 HAVING SUM(StaffSold.Revenue) >= 30000
 GROUP BY StaffSold.FName, StaffSold.LName, StaffSold.StaffID
 );
