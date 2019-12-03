@@ -189,6 +189,7 @@ HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) >= 50000 /* 
 ORDER BY staff_amount_sold DESC
 /
 
+-- View containing all products sorted from most sold to the least sold.
 CREATE or REPLACE VIEW best_products AS
 SELECT ProductID, ProductDesc, ProductPrice * QuantitySold AS Product_Revenue
 FROM (
@@ -199,30 +200,31 @@ FROM (
 ) ORDER BY Product_Revenue DESC
 /
 
+-- View containing the staff who have sold the products that have sold the most, option 7 view.
 CREATE OR REPLACE VIEW staff_who_sold_best_products AS
 SELECT StaffID, CONCAT(CONCAT(FName, ' '), LName) AS STAFFNAME, PRODUCTID, ProductSoldAmount FROM (
-WITH BestStaff AS (
-    SELECT staff.FName AS FName, staff.LName AS LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
-    inventory.ProductPrice AS ProductPrice, SUM(ProductQuantity) AS ProductSoldAmount
-    FROM staff
-        INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID
-        INNER JOIN order_products ON staff_orders.OrderID = order_products.OrderID
-        INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
-    WHERE inventory.ProductID IN ( 
-        SELECT inventory.ProductID
-        FROM inventory
-            INNER JOIN order_products ON inventory.ProductID = order_products.ProductID
-        GROUP BY inventory.ProductID
-        HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000
-    ) GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID, inventory.ProductPrice
-)
-SELECT BestStaff.FName, BestStaff.LName, BestStaff.StaffID, BestStaff.ProductID, BestStaff.ProductSoldAmount
-FROM BestStaff
-INNER JOIN (
-    SELECT BestStaff.StaffID AS StaffID, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
-    FROM BestStaff
-    GROUP BY BestStaff.StaffID
-    ) StaffTotalBestSellers ON BestStaff.StaffID = StaffTotalBestSellers.StaffID
-ORDER BY StaffTotalBestSellers.StaffSoldAmount DESC
+	WITH BestStaff AS (
+		SELECT staff.FName AS FName, staff.LName AS LName, staff.StaffID AS StaffID, inventory.ProductID AS ProductID,
+		inventory.ProductPrice AS ProductPrice, SUM(ProductQuantity) AS ProductSoldAmount
+		FROM staff
+			INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID
+			INNER JOIN order_products ON staff_orders.OrderID = order_products.OrderID
+			INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
+		WHERE inventory.ProductID IN ( 
+			SELECT inventory.ProductID
+			FROM inventory
+				INNER JOIN order_products ON inventory.ProductID = order_products.ProductID
+			GROUP BY inventory.ProductID
+			HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000
+		) GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID, inventory.ProductPrice
+	)
+	SELECT BestStaff.FName, BestStaff.LName, BestStaff.StaffID, BestStaff.ProductID, BestStaff.ProductSoldAmount
+	FROM BestStaff
+	INNER JOIN (
+		SELECT BestStaff.StaffID AS StaffID, SUM(BestStaff.ProductSoldAmount * BestStaff.ProductPrice) AS StaffSoldAmount
+		FROM BestStaff
+		GROUP BY BestStaff.StaffID
+		) StaffTotalBestSellers ON BestStaff.StaffID = StaffTotalBestSellers.StaffID
+	ORDER BY StaffTotalBestSellers.StaffSoldAmount DESC
 )
 /
