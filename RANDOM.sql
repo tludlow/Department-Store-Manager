@@ -82,3 +82,62 @@ WHERE inventory.ProductID IN (
     HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) > 20000
 );
 
+
+
+
+-- Employees who have sold at least 30k of products in a specific year and sold at least one of the products selling more than 20k.
+WITH Employees30K AS (
+    SELECT staff.StaffID AS StaffIDEmployee, staff.FName AS FnameE, staff.LName AS LNameE, SUM(inventory.ProductPrice * order_products.ProductQuantity) AS staff_amount_sold
+    FROM staff 
+        INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID
+        INNER JOIN orders ON staff_orders.OrderID = orders.OrderID
+        INNER JOIN order_products ON orders.OrderID = order_products.OrderID
+        INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
+    WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = 2019
+    GROUP BY staff.StaffID, staff.FName, staff.LName
+    HAVING SUM(inventory.ProductPrice * order_products.ProductQuantity) >= 30000
+    ORDER BY staff_amount_sold DESC
+), ProductsMoreThan20K AS (
+    SELECT * FROM (
+        SELECT ProductID, ProductDesc, ProductPrice * QuantitySold AS Product_Revenue
+        FROM  (
+            SELECT inventory.ProductID AS ProductID, ProductDesc, inventory.ProductPrice AS ProductPrice, SUM(order_products.ProductQuantity) AS QuantitySold
+            FROM inventory
+                INNER JOIN order_products ON inventory.ProductID = order_products.ProductID
+                INNER JOIN orders ON order_products.OrderID = orders.OrderID
+            WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = 2019
+            GROUP BY inventory.ProductID, ProductDesc, inventory.ProductPrice
+        )
+    ORDER BY Product_Revenue DESC
+    ) WHERE Product_Revenue > 20000
+), EmployeesSellingOver20KProducts AS (
+    SELECT * FROM (
+        SELECT staff.StaffID AS StaffID, staff.FName AS FName, staff.LName as LName, inventory.ProductID AS ProductID,
+        SUM(inventory.ProductPrice * order_products.ProductQuantity) AS Revenue
+        FROM staff
+            INNER JOIN staff_orders ON staff.StaffID = staff_orders.StaffID
+            INNER JOIN orders ON staff_orders.OrderID = orders.OrderID
+            INNER JOIN order_products ON orders.OrderID = order_products.OrderID
+            INNER JOIN inventory ON order_products.ProductID = inventory.ProductID
+        WHERE EXTRACT(YEAR FROM orders.OrderPlaced) = 2019
+        GROUP BY staff.FName, staff.LName, staff.StaffID, inventory.ProductID
+    ) WHERE Revenue > 20000
+) SELECT CONCAT(CONCAT(FName, ' '), LName) AS STAFF_NAME FROM (
+    SELECT StaffID, FName, LName FROM (
+        SELECT *
+        FROM (Employees30K JOIN EmployeesSellingOver20KProducts ON (
+            Employees30K.StaffIDEmployee = EmployeesSellingOver20KProducts.StaffID AND 
+            Employees30K.FNameE = EmployeesSellingOver20KProducts.FName AND
+            Employees30K.LNameE = EmployeesSellingOver20KProducts.LName)
+        )
+    )
+) GROUP BY FName, LName
+HAVING COUNT(StaffID) = (SELECT COUNT(*) FROM ProductsMoreThan20K);
+
+
+
+
+
+
+
+
